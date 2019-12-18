@@ -147,7 +147,9 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::MemoryPoolKey: /* --cpu-memory-pool */
         return set(doc, kCpu, "memory-pool", static_cast<int64_t>(strtol(arg, nullptr, 10)));
-        break;
+
+    case IConfig::YieldKey: /* --cpu-no-yield */
+        return set(doc, kCpu, "yield", false);
 
 #   ifdef XMRIG_FEATURE_ASM
     case IConfig::AssemblyKey: /* --asm */
@@ -160,6 +162,19 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::RandomXNumaKey: /* --randomx-no-numa */
         return set(doc, kRandomX, "numa", false);
+
+    case IConfig::RandomXModeKey: /* --randomx-mode */
+        return set(doc, kRandomX, "mode", arg);
+
+    case IConfig::RandomX1GbPagesKey: /* --randomx-1gb-pages */
+        return set(doc, kRandomX, "1gb-pages", true);
+
+    case IConfig::RandomXWrmsrKey: /* --randomx-wrmsr */
+        if (arg == nullptr) {
+            return set(doc, kRandomX, "wrmsr", true);
+        }
+
+        return set(doc, kRandomX, "wrmsr", static_cast<int64_t>(strtol(arg, nullptr, 10)));
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL

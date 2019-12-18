@@ -22,38 +22,46 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XMRIG_HUGEPAGESINFO_H
+#define XMRIG_HUGEPAGESINFO_H
 
-#include "crypto/rx/RxConfig.h"
-#include "base/io/json/Json.h"
-#include "rapidjson/document.h"
+
+#include <cstdint>
+#include <cstddef>
 
 
 namespace xmrig {
 
-static const char *kInit = "init";
 
-}
+class VirtualMemory;
 
 
-rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
+class HugePagesInfo
 {
-    using namespace rapidjson;
-    auto &allocator = doc.GetAllocator();
+public:
+    HugePagesInfo() = default;
+    HugePagesInfo(const VirtualMemory *memory);
 
-    Value obj(kObjectType);
-    obj.AddMember(StringRef(kInit), m_threads, allocator);
+    size_t allocated    = 0;
+    size_t total        = 0;
+    size_t size         = 0;
 
-    return obj;
-}
+    inline bool isFullyAllocated() const { return allocated == total; }
+    inline double percent() const        { return allocated == 0 ? 0.0 : static_cast<double>(allocated) / total * 100.0; }
+    inline void reset()                  { allocated = 0; total = 0; size = 0; }
 
+    inline HugePagesInfo &operator+=(const HugePagesInfo &other)
+    {
+        allocated += other.allocated;
+        total     += other.total;
+        size      += other.size;
 
-bool xmrig::RxConfig::read(const rapidjson::Value &value)
-{
-    if (value.IsObject()) {
-        m_threads = Json::getInt(value, kInit, m_threads);
-
-        return true;
+        return *this;
     }
+};
 
-    return false;
-}
+
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_HUGEPAGESINFO_H */
